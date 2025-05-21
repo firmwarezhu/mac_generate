@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MAC Address Generator & Validator</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2 {
+            color: #2c3e50;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        .section {
+            background: #f9f9f9;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .diagram {
+            margin: 20px 0;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #2980b9;
+        }
+        input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            min-width: 250px;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 4px;
+        }
+        .valid {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .invalid {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .explanation {
+            margin-top: 20px;
+            background: #e8f4f8;
+            padding: 15px;
+            border-radius: 4px;
+        }
+        .byte {
+            display: inline-block;
+            padding: 5px 8px;
+            margin: 2px;
+            background: #3498db;
+            color: white;
+            border-radius: 4px;
+        }
+        svg text {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>MAC Address Generator & Validator</h1>
+        
+        <div class="section">
+            <h2>Generate & Validate MAC Addresses</h2>
+            <div class="controls">
+                <button id="generate">Generate Random MAC Address</button>
+                <input type="text" id="macInput" placeholder="Enter MAC address (e.g., 00:1A:2B:3C:4D:5E)">
+                <button id="validate">Validate</button>
+            </div>
+            <div id="macResult" class="result"></div>
+        </div>
+
+        <div class="section">
+            <h2>Block Diagram: MAC Address Structure</h2>
+            <div class="diagram">
+                <svg width="100%" height="220" viewBox="0 0 800 220">
+                    <!-- MAC Address Structure Diagram -->
+                    <rect x="50" y="20" width="700" height="80" rx="5" fill="#f0f0f0" stroke="#2c3e50" stroke-width="2"/>
+                    
+                    <!-- OUI Part -->
+                    <rect x="50" y="20" width="350" height="80" rx="0" fill="#3498db" stroke="#2c3e50" stroke-width="2"/>
+                    <text x="225" y="65" text-anchor="middle" fill="white" font-weight="bold">OUI (Organizationally Unique Identifier)</text>
+                    <text x="225" y="85" text-anchor="middle" fill="white" font-size="14">First 3 bytes (manufacturer ID)</text>
+                    
+                    <!-- NIC Part -->
+                    <rect x="400" y="20" width="350" height="80" rx="0" fill="#2ecc71" stroke="#2c3e50" stroke-width="2"/>
+                    <text x="575" y="65" text-anchor="middle" fill="white" font-weight="bold">NIC Specific</text>
+                    <text x="575" y="85" text-anchor="middle" fill="white" font-size="14">Last 3 bytes (device ID)</text>
+                    
+                    <!-- Bytes -->
+                    <rect x="50" y="120" width="116" height="40" rx="5" fill="#3498db" stroke="#2c3e50" stroke-width="2"/>
+                    <text x="108" y="144" text-anchor="middle" fill="white">Byte 1</text>
+                    
+                    <rect x="167" y="120" width="116" height="40" rx="5" fill="#3498db" stroke="#2c3e50" stroke-width="2"/>
+                    <text x="225" y="144" text-anchor="middle" fill="white">Byte 2</text>
+                    
+                    <rect x="284" y="120" width="116" height="40" rx="5" fill="#3498db" stroke="#2c3e50" stroke-width="2"/>
+                    <text x="342" y="144" text-anchor="middle" fill="white">Byte 3</text>
+                    
+                    <rect x="400" y="120" width="116" height="40" rx="5" fill="#2ecc71" stroke="#2c3e50" stroke-width="2"/>
+                    <text x="458" y="144" text-anchor="middle" fill="white">Byte 4</text>
+                    
+                    <rect x="517" y="120" width="116" height="40" rx="5" fill="#2ecc71" stroke="#2c3e50" stroke-width="2"/>
+                    <text x="575" y="144" text-anchor="middle" fill="white">Byte 5</text>
+                    
+                    <rect x="634" y="120" width="116" height="40" rx="5" fill="#2ecc71" stroke="#2c3e50" stroke-width="2"/>
+                    <text x="692" y="144" text-anchor="middle" fill="white">Byte 6</text>
+                    
+                    <!-- Bits -->
+                    <text x="108" y="180" text-anchor="middle" font-size="12">Bit 47-40</text>
+                    <text x="225" y="180" text-anchor="middle" font-size="12">Bit 39-32</text>
+                    <text x="342" y="180" text-anchor="middle" font-size="12">Bit 31-24</text>
+                    <text x="458" y="180" text-anchor="middle" font-size="12">Bit 23-16</text>
+                    <text x="575" y="180" text-anchor="middle" font-size="12">Bit 15-8</text>
+                    <text x="692" y="180" text-anchor="middle" font-size="12">Bit 7-0</text>
+                    
+                    <!-- Special Bits Indicator -->
+                    <text x="108" y="210" text-anchor="middle" font-size="12" fill="#e74c3c">Bit 47: Unicast (0) or Multicast (1)</text>
+                    <text x="342" y="210" text-anchor="middle" font-size="12" fill="#e74c3c">Bit 46: Globally (0) or Locally (1) Administered</text>
+                </svg>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Flowchart: MAC Address Generation & Validation Process</h2>
+            <div class="diagram">
+                <svg width="100%" height="600" viewBox="0 0 800 600">
+                    <!-- Generation Process -->
+                    <text x="400" y="30" text-anchor="middle" font-size="18" font-weight="bold">MAC Address Generation & Validation</text>
+                    
+                    <!-- Generation Side -->
+                    <text x="200" y="70" text-anchor="middle" font-size="16" font-weight="bold">Generation Process</text>
+                    
+                    <!-- Start -->
+                    <rect x="150" y="90" width="100" height="50" rx="25" fill="#3498db" stroke="#2c3e50" stroke-width="2"/>
+                    <text x="200" y="120" text-anchor="middle" fill="white">Start</text>
+                    
+                    <!-- Generate 6 random bytes -->
+                    <rect x="100" y="170" width="200" height="50" rx="5" fill="#2ecc71" stroke="#2c3e50" stroke-width="2"/>
+                    <text x="200" y="200" text-anchor="middle" fill="white">Generate 6 Random Bytes</text>
+                    
+                    <!-- Set Special Bits -->
+                    <rect x="100" y="250" width="200" height="50" rx="5" fill="#2ecc71" stroke="#2c3e50" stroke-width="2"/>
+                    <text x="200" y="270" text-anchor="middle" fill="white">Set Special Bits</text>
+                    <text x="200" y="290" text-anchor="middle" fill="white" font-size="12">(Unicast/Local)</text>
+                    
+                    <!-- Format MAC Address -->
+                    <rect x="100" y="330" width="200" height="50" rx="5" fill="#2ecc71" stroke="#2c3e50" stroke-width="2"/>
+                    <text x="200" y="360" text-anchor="middle" fill="white">Format as XX:XX:XX:XX:XX:XX</text>
+                    
+                    <!-- Return MAC Address -->
+                    <rect x="100" y="410" width="200" height="50" rx="5" fill="#2ecc71" stroke="#2c3e50" stroke-width="2"/>
+                    <text x="200" y="440" text-anchor="middle" fill="white">Return MAC Address</text>
+                    
+                    <!-- End -->
+                    <rect x="150" y="490" width="100" height="50" rx="25" fill="#e74c3c" stroke="#2c3e50" stroke-width="2"/>
+                    <text x="200" y="520" text-anchor="middle" fill="white">End</text>
+                    
+                    <!-- Connector Lines -->
+                    <line x1="200" y1="140" x2="200" y2="170" stroke="#2c3e50" stroke-width="2"/>
+                    <polygon points="200,170 195,160 205,160" fill="#2c3e50"/>
+                    
+                    <line x1="200" y1="220" x2="200" y2="250" stroke="#2c3e50" stroke-width="2"/>
+                    <polygon points="200,250 195,240 205,240" fill="#2c3e50"/>
+                    
+                    <line x1="200" y1="300" x2="200" y2="330" stroke="#2c3e50" stroke-width="2"/>
+                    <polygon points="200,330 195,320 205,320" fill="#2c3e50"/>
+                    
+                    <line x1="200" y1="380" x2="200" y2="410" stroke="#2c3e50" stroke-width="2"/>
+                    <polygon points="200,410 195,400 205,400" fill="#2c3e50"/>
+                    
+                    <line x1="200" y1="460" x2="200" y2="490" stroke="#2c3e50" stroke-width="2"/>
+                    <polygon points="200,490 195,480 205,480" fill="#2c3e50"/>
+                    
+                    <!-- Validation Side -->
+                    <text x="600" y="70" text-anchor="middle" font-size="16" font-weight="bold">Validation Process</text>
+                    
+                    <!-- Start -->
+                    <rect x="550" y="90" width="100" height="50" rx="25" fill="#3498db" stroke="#2c3e50" stroke-width="2"/>
+                    <text x="600" y="120" text-anchor="middle" fill="white">Start</text>
+                    
+                    <!-- Check Format -->
+                    <rect x="500" y="170" width="200" height="50" rx="5" fill="#f39c12" stroke="#2c3e50" stroke-width="2"/>
+                    <text x="600" y="200" text-anchor="middle" fill="white">Check Format (Regex)</text>
+                    
+                    <!-- Decision: Format Valid? -->
+                    <polygon points="600,250 650,300 600,350 550,300" fill="#9b59b6" stroke="#2c3e50" stroke-width="2"/>
+                    <text x="600" y="305" text-anchor="middle" fill="white">Format Valid?</text>
+                    
+                    <!-- Check Special Bits -->
+                    <rect x="500" y="380" width="200" height="50" rx="5" fill="#f39c12" stroke="#2c3e50" stroke-width="2"/>
+                    <text x="600" y="410" text-anchor="middle" fill="white">Analyze Special Bits</text>
+                    
+                    <!-- Return Result -->
+                    <rect x="500" y="460" width="200" height="50" rx="5" fill="#2ecc71" stroke="#2c3e50" stroke-width="2"/>
+                    <text x="600" y="490" text-anchor="middle" fill="white">Return Validation Result</text>
+                    
+                    <!-- End -->
+                    <rect x="550" y="540" width="100" height="50" rx="25" fill="#e74c3c" stroke="#2c3e50" stroke-width="2"/>
+                    <text x="600" y="570" text-anchor="middle" fill="white">End</text>
+                    
+                    <!-- Invalid Result -->
+                    <rect x="700" y="275" width="80" height="50" rx="5" fill="#e74c3c" stroke="#2c3e50" stroke-width="2"/>
+                    <text x="740" y="305" text-anchor="middle" fill="white">Invalid</text>
+                    
+                    <!-- Connector Lines -->
+                    <line x1="600" y1="140" x2="600" y2="170" stroke="#2c3e50" stroke-width="2"/>
+                    <polygon points="600,170 595,160 605,160" fill="#2c3e50"/>
+                    
+                    <line x1="600" y1="220" x2="600" y2="250" stroke="#2c3e50" stroke-width="2"/>
+                    <polygon points="600,250 595,240 605,240" fill="#2c3e50"/>
+                    
+                    <!-- No path -->
+                    <line x1="650" y1="300" x2="700" y2="300" stroke="#2c3e50" stroke-width="2"/>
+                    <polygon points="700,300 690,295 690,305" fill="#2c3e50"/>
+                    <text x="670" y="290" text-anchor="middle" font-size="12">No</text>
+                    
+                    <!-- Yes path -->
+                    <line x1="600" y1="350" x2="600" y2="380" stroke="#2c3e50" stroke-width="2"/>
+                    <polygon points="600,380 595,370 605,370" fill="#2c3e50"/>
+                    <text x="610" y="370" text-anchor="middle" font-size="12">Yes</text>
+                    
+                    <!-- To end from Invalid -->
+                    <line x1="740" y1="325" x2="740" y2="565" stroke="#2c3e50" stroke-width="2"/>
+                    <line x1="740" y1="565" x2="650" y2="565" stroke="#2c3e50" stroke-width="2"/>
+                    <polygon points="650,565 660,560 660,570" fill="#2c3e50"/>
+                    
+                    <line x1="600" y1="430" x2="600" y2="460" stroke="#2c3e50" stroke-width="2"/>
+                    <polygon points="600,460 595,450 605,450" fill="#2c3e50"/>
+                    
+                    <line x1="600" y1="510" x2="600" y2="540" stroke="#2c3e50" stroke-width="2"/>
+                    <polygon points="600,540 595,530 605,530" fill="#2c3e50"/>
+                </svg>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Explanation</h2>
+            <div class="explanation">
+                <h3>MAC Address Structure</h3>
+                <p>A MAC address consists of 6 bytes (48 bits), typically written as hexadecimal values separated by colons:</p>
+                <div>
+                    <span class="byte">XX</span>:<span class="byte">XX</span>:<span class="byte">XX</span>:<span class="byte">XX</span>:<span class="byte">XX</span>:<span class="byte">XX</span>
+                </div>
+                <p>Where each X is a hexadecimal digit (0-9, A-F).</p>
+                
+                <h3>Special Bits</h3>
+                <ul>
+                    <li><strong>Bit 47 (first bit of first byte):</strong> If 0, the address is unicast (individual). If 1, the address is multicast (group).</li>
+                    <li><strong>Bit 46 (second bit of first byte):</strong> If 0, the address is globally unique (assigned by manufacturer). If 1, the address is locally administered.</li>
+                </ul>
+                
+                <h3>MAC Address Types and Use Cases</h3>
+                
+                <h4>1. Individual vs. Group (Unicast vs. Multicast)</h4>
+                <div style="display: flex; margin-bottom: 20px;">
+                    <div style="flex: 1; background: #eaf2f8; padding: 15px; border-radius: 5px; margin-right: 10px;">
+                        <h5 style="color: #2980b9;">Individual (Unicast) - Bit 47 = 0</h5>
+                        <p><strong>Description:</strong> Addresses a single specific network interface</p>
+                        <p><strong>Use Cases:</strong></p>
+                        <ul>
+                            <li>Normal device-to-device communication</li>
+                            <li>Direct data transfer between two specific devices</li>
+                            <li>Point-to-point communication</li>
+                            <li>Standard internet browsing (your computer to a server)</li>
+                            <li>Device identification for authentication</li>
+                        </ul>
+                        <p><strong>Example:</strong> 02:42:AC:11:00:02 (note first byte 02)</p>
+                    </div>
+                    <div style="flex: 1; background: #e8f8f5; padding: 15px; border-radius: 5px;">
+                        <h5 style="color: #27ae60;">Group (Multicast) - Bit 47 = 1</h5>
+                        <p><strong>Description:</strong> Addresses multiple devices simultaneously</p>
+                        <p><strong>Use Cases:</strong></p>
+                        <ul>
+                            <li>Streaming video to multiple receivers</li>
+                            <li>Network discovery protocols</li>
+                            <li>Routing protocol updates</li>
+                            <li>IPTV distribution</li>
+                            <li>Video conferencing</li>
+                            <li>Service discovery (Bonjour, UPnP)</li>
+                        </ul>
+                        <p><strong>Example:</strong> 01:00:5E:00:00:FB (note first byte 01)</p>
+                    </div>
+                </div>
+                
+                <h4>2. Globally Unique vs. Locally Administered</h4>
+                <div style="display: flex;">
+                    <div style="flex: 1; background: #f4ecf7; padding: 15px; border-radius: 5px; margin-right: 10px;">
+                        <h5 style="color: #8e44ad;">Globally Unique - Bit 46 = 0</h5>
+                        <p><strong>Description:</strong> Assigned by manufacturer, guaranteed to be globally unique</p>
+                        <p><strong>Use Cases:</strong></p>
+                        <ul>
+                            <li>Factory-assigned hardware addresses</li>
+                            <li>Public networks where uniqueness is critical</li>
+                            <li>Corporate environments requiring asset tracking</li>
+                            <li>Network troubleshooting and forensics</li>
+                            <li>Devices that must maintain a consistent identity</li>
+                        </ul>
+                        <p><strong>Example:</strong> 00:1A:79:B4:E0:8D (major manufacturers like Apple, Cisco, etc.)</p>
+                    </div>
+                    <div style="flex: 1; background: #fef9e7; padding: 15px; border-radius: 5px;">
+                        <h5 style="color: #f39c12;">Locally Administered - Bit 46 = 1</h5>
+                        <p><strong>Description:</strong> Set by software/administrator, only unique within local network</p>
+                        <p><strong>Use Cases:</strong></p>
+                        <ul>
+                            <li>Virtual machines and containers</li>
+                            <li>Network address translation (NAT)</li>
+                            <li>Privacy enhancement (MAC randomization)</li>
+                            <li>Mobile devices changing MAC for privacy</li>
+                            <li>Software-defined networking (SDN)</li>
+                            <li>Network segmentation and VLANs</li>
+                        </ul>
+                        <p><strong>Example:</strong> 02:42:AC:11:00:02 (used in Docker containers)</p>
+                    </div>
+                </div>
+                
+                <h4>Real-World Applications</h4>
+                <ul>
+                    <li><strong>MAC Randomization:</strong> Modern smartphones use locally administered, randomly generated MAC addresses when scanning for WiFi networks to prevent tracking across locations.</li>
+                    <li><strong>Network Access Control:</strong> Enterprise networks use globally unique MAC addresses to authenticate devices and control access.</li>
+                    <li><strong>Multicast Streaming:</strong> IPTV services use multicast MAC addresses to efficiently distribute video content to multiple subscribers simultaneously.</li>
+                    <li><strong>Virtualization:</strong> Cloud platforms generate locally administered MAC addresses for virtual machines to ensure uniqueness within a data center.</li>
+                </ul>
+                
+                <h3>MAC Address Generation</h3>
+                <ol>
+                    <li>Generate 6 random bytes</li>
+                    <li>Set special bits as needed (typically bit 46 = 1 for locally administered)</li>
+                    <li>Format as XX:XX:XX:XX:XX:XX</li>
+                </ol>
+                
+                <h3>MAC Address Validation</h3>
+                <ol>
+                    <li>Check format using regex: <code>/^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/</code></li>
+                    <li>Analyze special bits (optional)</li>
+                    <li>Return validation result</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // MAC Address Generator
+        function generateMACAddress(locallyAdministered = true) {
+            // Generate 6 random bytes
+            const bytes = new Array(6).fill(0).map(() => Math.floor(Math.random() * 256));
+            
+            // Set special bits if locally administered
+            if (locallyAdministered) {
+                // Set the second bit of the first byte to 1 (locally administered)
+                bytes[0] = (bytes[0] & 0xfd) | 0x02; // Ensure bit 46 is 1
+                // Ensure unicast by setting bit 47 to 0
+                bytes[0] = bytes[0] & 0xfe;
+            }
+            
+            // Convert bytes to hexadecimal and format
+            return bytes.map(b => b.toString(16).padStart(2, '0')).join(':').toUpperCase();
+        }
+        
+        // MAC Address Validator
+        function validateMACAddress(mac) {
+            // Basic format validation
+            const regex = /^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/;
+            if (!regex.test(mac)) {
+                return {
+                    valid: false,
+                    message: "Invalid MAC address format. Should be XX:XX:XX:XX:XX:XX or XX-XX-XX-XX-XX-XX."
+                };
+            }
+            
+            // Parse first byte to analyze special bits
+            const firstByte = parseInt(mac.split(/[:-]/)[0], 16);
+            const isMulticast = (firstByte & 0x01) !== 0;
+            const isLocallyAdministered = (firstByte & 0x02) !== 0;
+            
+            return {
+                valid: true,
+                isMulticast,
+                isLocallyAdministered,
+                message: `Valid MAC address. ${isMulticast ? 'Multicast' : 'Unicast'}, ${isLocallyAdministered ? 'Locally administered' : 'Globally unique'}.`
+            };
+        }
+        
+        // DOM elements
+        const generateBtn = document.getElementById('generate');
+        const validateBtn = document.getElementById('validate');
+        const macInput = document.getElementById('macInput');
+        const macResult = document.getElementById('macResult');
+        
+        // Event listeners
+        generateBtn.addEventListener('click', () => {
+            const mac = generateMACAddress();
+            macInput.value = mac;
+            macResult.textContent = `Generated MAC Address: ${mac}`;
+            macResult.className = 'result valid';
+        });
+        
+        validateBtn.addEventListener('click', () => {
+            const mac = macInput.value.trim();
+            const validation = validateMACAddress(mac);
+            
+            macResult.textContent = validation.message;
+            macResult.className = validation.valid ? 'result valid' : 'result invalid';
+            
+            if (validation.valid) {
+                macResult.innerHTML += `<br><br>Details:<br>
+                - Type: ${validation.isMulticast ? 'Multicast (Group)' : 'Unicast (Individual)'}<br>
+                - Administration: ${validation.isLocallyAdministered ? 'Locally Administered' : 'Globally Unique (OUI)'}<br>`;
+            }
+        });
+    </script>
+</body>
+</html>
